@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema de Gestão de Campeonato Pro</title>
+    <style>
+        :root { --g6: #2ecc71; --meio: #f1c40f; --z4: #e74c3c; --primary: #3498db; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1400px; margin: auto; }
+        
+        .card-panel { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h3 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 1.1rem; }
+        
+        .flex-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 15px; }
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 0.7rem; font-weight: bold; color: #7f8c8d; text-transform: uppercase; }
+        
+        input, select { padding: 8px; border: 1px solid #ddd; border-radius: 6px; outline: none; }
+        input:focus { border-color: var(--primary); }
+        
+        button { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-add { background: var(--primary); color: white; }
+        .btn-save { background: #27ae60; color: white; width: 100%; margin-top: 10px; }
+        .btn-save:hover { background: #219150; }
+        
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        th { background: #2c3e50; color: white; padding: 12px; font-size: 0.75rem; text-transform: uppercase; }
+        td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        
+        .g6 { border-left: 8px solid var(--g6); background-color: #f9fffb; }
+        .meio { border-left: 8px solid var(--meio); background-color: #fffdf5; }
+        .z4 { border-left: 8px solid var(--z4); background-color: #fff9f9; }
+        
+        .val-destaque { font-weight: bold; color: #2c3e50; }
+        .info-jogador { font-size: 0.8rem; color: #555; background: #eee; padding: 2px 6px; border-radius: 4px; display: inline-block; margin: 2px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 id="tituloLiga">🏆 Gestor de Torneio</h2>
+
+    <div class="card-panel">
+        <h3>⚙️ Regras e Nome</h3>
+        <div class="flex-row">
+            <div class="input-group">
+                <label>Nome do Campeonato</label>
+                <input type="text" id="cfgNome" placeholder="Ex: Copa Master" oninput="document.getElementById('tituloLiga').innerText = '🏆 ' + this.value">
+            </div>
+            <div class="input-group"><label>Vitória</label><input type="number" id="cfgV" value="3" style="width:50px" onchange="renderizarTabela()"></div>
+            <div class="input-group"><label>Empate</label><input type="number" id="cfgE" value="1" style="width:50px" onchange="renderizarTabela()"></div>
+            <div class="input-group"><label>Falta</label><input type="number" id="cfgF" value="-1" style="width:50px" onchange="renderizarTabela()"></div>
+        </div>
+    </div>
+
+    <div class="card-panel">
+        <h3>🆕 Novo Time</h3>
+        <div class="flex-row">
+            <input type="text" id="novoTime" placeholder="Nome da equipe..." style="width: 250px;">
+            <button class="btn-add" onclick="adicionarTime()">Cadastrar</button>
+        </div>
+    </div>
+
+    <div class="card-panel" id="painelEdicao" style="display:none; border-top: 5px solid var(--meio);">
+        <h3>✏️ Editar Informações do Time</h3>
+        <div class="flex-row">
+            <div class="input-group" style="flex-grow: 1;">
+                <label>Selecionar Equipe</label>
+                <select id="selectTimeEdit" onchange="carregarDadosParaEdicao()" style="width: 100%;">
+                    <option value="">Escolha um time...</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="flex-row" style="background: #f9f9f9; padding: 15px; border-radius: 8px;">
+            <div class="input-group"><label>Vitórias</label><input type="number" id="editV" value="0" style="width:50px"></div>
+            <div class="input-group"><label>Empates</label><input type="number" id="editE" value="0" style="width:50px"></div>
+            <div class="input-group"><label>Derrotas</label><input type="number" id="editD" value="0" style="width:50px"></div>
+            <div class="input-group"><label>Faltas</label><input type="number" id="editFaltas" value="0" style="width:50px"></div>
+            <div class="input-group"><label>Gols Pro</label><input type="number" id="editGP" value="0" style="width:50px"></div>
+            <div class="input-group"><label>Gols Contra</label><input type="number" id="editGC" value="0" style="width:50px"></div>
+            
+            <div style="width: 100%; height: 1px; background: #ddd; margin: 5px 0;"></div>
+            
+            <div class="input-group"><label>⭐ MVP do Time</label><input type="text" id="editMVP" placeholder="Nome do jogador" style="width:140px"></div>
+            <div class="input-group"><label>⚽ Artilheiro</label><input type="text" id="editArtilheiro" placeholder="Nome do jogador" style="width:140px"></div>
+            <div class="input-group"><label>👟 Assistências</label><input type="number" id="editAssist" value="0" style="width:60px"></div>
+        </div>
+        <button class="btn-save" onclick="salvarEdicao()">Atualizar Dados na Tabela</button>
+    </div>
+
+    <table id="tabelaCampeonato">
+        <thead>
+            <tr>
+                <th>Pos</th>
+                <th>Equipe</th>
+                <th>Pts</th>
+                <th>J</th>
+                <th>V/E/D</th>
+                <th>Faltas</th>
+                <th>Gols (P/C/S)</th>
+                <th>Destaques Individuais</th>
+                <th>Ação</th>
+            </tr>
+        </thead>
+        <tbody id="corpoTabela"></tbody>
+    </table>
+</div>
+
+<script>
+    let times = [];
+
+    function adicionarTime() {
+        const input = document.getElementById('novoTime');
+        if (!input.value.trim()) return;
+
+        times.push({
+            id: Date.now(),
+            nome: input.value,
+            v: 0, e: 0, d: 0, faltas: 0,
+            gp: 0, gc: 0, mvp: '---', artilheiro: '---', assist: 0
+        });
+
+        input.value = "";
+        renderizarTabela();
+    }
+
+    function carregarDadosParaEdicao() {
+        const id = document.getElementById('selectTimeEdit').value;
+        if(!id) return;
+        const time = times.find(t => t.id == id);
+        
+        document.getElementById('editV').value = time.v;
+        document.getElementById('editE').value = time.e;
+        document.getElementById('editD').value = time.d;
+        document.getElementById('editFaltas').value = time.faltas;
+        document.getElementById('editGP').value = time.gp;
+        document.getElementById('editGC').value = time.gc;
+        document.getElementById('editMVP').value = time.mvp;
+        document.getElementById('editArtilheiro').value = time.artilheiro;
+        document.getElementById('editAssist').value = time.assist;
+    }
+
+    function salvarEdicao() {
+        const id = document.getElementById('selectTimeEdit').value;
+        if(!id) return alert("Selecione um time primeiro!");
+        const idx = times.findIndex(t => t.id == id);
+
+        times[idx].v = parseInt(document.getElementById('editV').value) || 0;
+        times[idx].e = parseInt(document.getElementById('editE').value) || 0;
+        times[idx].d = parseInt(document.getElementById('editD').value) || 0;
+        times[idx].faltas = parseInt(document.getElementById('editFaltas').value) || 0;
+        times[idx].gp = parseInt(document.getElementById('editGP').value) || 0;
+        times[idx].gc = parseInt(document.getElementById('editGC').value) || 0;
+        times[idx].mvp = document.getElementById('editMVP').value || '---';
+        times[idx].artilheiro = document.getElementById('editArtilheiro').value || '---';
+        times[idx].assist = parseInt(document.getElementById('editAssist').value) || 0;
+
+        renderizarTabela();
+        alert("Dados de " + times[idx].nome + " atualizados!");
+    }
+
+    function renderizarTabela() {
+        const tbody = document.getElementById('corpoTabela');
+        const selectEdit = document.getElementById('selectTimeEdit');
+        const pV = parseInt(document.getElementById('cfgV').value) || 0;
+        const pE = parseInt(document.getElementById('cfgE').value) || 0;
+        const pF = parseInt(document.getElementById('cfgF').value) || 0;
+
+        times.forEach(t => {
+            t.pontos = (t.v * pV) + (t.e * pE) + (t.faltas * pF);
+            t.jogos = t.v + t.e + t.d;
+            t.sg = t.gp - t.gc;
+        });
+
+        times.sort((a, b) => b.pontos - a.pontos || b.v - a.v || b.sg - a.sg);
+
+        tbody.innerHTML = "";
+        const valAnterior = selectEdit.value;
+        selectEdit.innerHTML = '<option value="">Selecione um time para editar...</option>';
+        document.getElementById('painelEdicao').style.display = times.length > 0 ? 'block' : 'none';
+
+        times.forEach((t, i) => {
+            let classe = "meio";
+            if (i < 6) classe = "g6";
+            else if (i >= times.length - 4 && times.length > 6) classe = "z4";
+
+            const opt = document.createElement('option');
+            opt.value = t.id; opt.text = t.nome;
+            if(t.id == valAnterior) opt.selected = true;
+            selectEdit.add(opt);
+
+            tbody.innerHTML += `
+                <tr class="${classe}">
+                    <td><strong>${i + 1}º</strong></td>
+                    <td style="text-align:left; font-weight:bold">${t.nome}</td>
+                    <td><span class="val-destaque" style="color:var(--primary); font-size:1.2rem">${t.pontos}</span></td>
+                    <td>${t.jogos}</td>
+                    <td>${t.v}/${t.e}/${t.d}</td>
+                    <td style="color:red">${t.faltas}</td>
+                    <td>${t.gp}/${t.gc}/<strong>${t.sg}</strong></td>
+                    <td style="text-align:left">
+                        <span class="info-jogador">⭐ MVP: ${t.mvp}</span><br>
+                        <span class="info-jogador">⚽ Art: ${t.artilheiro}</span><br>
+                        <span class="info-jogador">👟 Ast: ${t.assist}</span>
+                    </td>
+                    <td>
+                        <button style="background:none; color:#e74c3c; font-size:1.2rem" onclick="if(confirm('Remover time?')) { times = times.filter(x => x.id !== ${t.id}); renderizarTabela(); }">🗑</button>
+                    </td>
+                </tr>`;
+        });
+    }
+</script>
+
+</body>
+</html>
